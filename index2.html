@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>恋愛心理占い</title>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      padding:20px;
+      font-family:sans-serif;
+      background:#fff5f7;
+      color:#333;
+    }
+
+    .container{
+      max-width:500px;
+      margin:0 auto;
+    }
+
+    .card{
+      background:white;
+      border-radius:20px;
+      padding:25px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    h1{
+      text-align:center;
+      color:#ff4f87;
+      margin-bottom:10px;
+    }
+
+    .sub{
+      text-align:center;
+      color:#777;
+      margin-bottom:30px;
+      font-size:14px;
+    }
+
+    .label{
+      margin-top:18px;
+      margin-bottom:8px;
+      font-weight:bold;
+      font-size:14px;
+    }
+
+    input,
+    select,
+    textarea{
+      width:100%;
+      padding:14px;
+      border-radius:12px;
+      border:1px solid #ddd;
+      font-size:16px;
+      background:white;
+    }
+
+    textarea{
+      min-height:100px;
+      resize:none;
+    }
+
+    button{
+      width:100%;
+      margin-top:30px;
+      padding:16px;
+      border:none;
+      border-radius:14px;
+      background:#ff4f87;
+      color:white;
+      font-size:17px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:0.2s;
+    }
+
+    button:hover{
+      opacity:0.9;
+    }
+
+    .loading{
+      display:none;
+      text-align:center;
+      margin-top:25px;
+      color:#ff4f87;
+      font-weight:bold;
+      animation:pulse 1s infinite;
+    }
+
+    @keyframes pulse{
+      0%{opacity:0.4;}
+      50%{opacity:1;}
+      100%{opacity:0.4;}
+    }
+
+    .result{
+      display:none;
+      margin-top:25px;
+      background:#fff;
+      border-radius:16px;
+      padding:20px;
+      line-height:1.8;
+      border:2px solid #ffd6e2;
+    }
+
+    .result-title{
+      font-size:18px;
+      color:#ff4f87;
+      font-weight:bold;
+      margin-bottom:10px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="card">
+
+    <h1>恋愛心理占い</h1>
+
+    <div class="sub">
+      相手の行動から本音を読み解きます
+    </div>
+
+    <!-- 名前 -->
+    <div class="label">あなたの名前</div>
+    <input type="text" id="name" placeholder="例：さやか">
+
+    <!-- 年齢 -->
+    <div class="label">相手の年齢</div>
+    <input type="number" id="age" placeholder="例：29">
+
+    <!-- 血液型 -->
+    <div class="label">血液型</div>
+    <select id="blood">
+      <option value="">選択してください</option>
+      <option>A型</option>
+      <option>B型</option>
+      <option>O型</option>
+      <option>AB型</option>
+    </select>
+
+    <!-- 生活タイプ -->
+    <div class="label">生活タイプ</div>
+    <select id="life">
+      <option value="">選択してください</option>
+      <option>朝型</option>
+      <option>夜型</option>
+      <option>不規則</option>
+      <option>インドア</option>
+      <option>アウトドア</option>
+    </select>
+
+    <!-- 怪しい行動 -->
+    <div class="label">最近の怪しい行動</div>
+    <select id="behavior">
+      <option value="">選択してください</option>
+      <option>返信が遅い</option>
+      <option>スマホを見る回数が増えた</option>
+      <option>急に優しくなった</option>
+      <option>飲み会が増えた</option>
+      <option>急にオシャレになった</option>
+      <option>SNSの更新が増えた</option>
+      <option>予定を教えてくれない</option>
+      <option>電話が減った</option>
+    </select>
+
+    <!-- 詳細 -->
+    <div class="label">気になること（任意）</div>
+    <textarea
+      id="detail"
+      placeholder="例：最近そっけない気がします..."
+    ></textarea>
+
+    <!-- ボタン -->
+    <button onclick="startFortune()">
+      占いを開始する
+    </button>
+
+    <!-- ローディング -->
+    <div class="loading" id="loading">
+      解析中...
+    </div>
+
+    <!-- 結果 -->
+    <div class="result" id="result">
+      <div class="result-title">
+        占い結果
+      </div>
+
+      <div id="resultText"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+  // LIFF初期化
+  window.onload = async function () {
+
+    try {
+
+      await liff.init({
+        liffId: "YOUR_LIFF_ID"
+      });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      }
+
+    } catch (e) {
+
+      console.log(e);
+
+    }
+
+  };
+
+  // 占い開始
+  function startFortune(){
+
+    const name = document.getElementById("name").value;
+    const age = document.getElementById("age").value;
+    const blood = document.getElementById("blood").value;
+    const life = document.getElementById("life").value;
+    const behavior = document.getElementById("behavior").value;
+    const detail = document.getElementById("detail").value;
+
+    if(!age || !blood || !life || !behavior){
+
+      alert("必要項目を入力してください");
+
+      return;
+
+    }
+
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("result").style.display = "none";
+
+    // 疑似ローディング
+    setTimeout(() => {
+
+      document.getElementById("loading").style.display = "none";
+
+      const results = [
+
+`${name || "あなた"}さんが見ている相手は、
+現在かなり感情を内側に溜め込む時期に入っています。
+
+特に「${behavior}」という行動は、
+気持ちが離れたというより、
+自分の中で整理したい感情が増えている暗示があります。
+
+${blood}型特有の慎重さと、
+${life}タイプの生活リズムから、
+今は距離感に波が出やすい状態です。
+
+ただし完全に縁が切れる流れではなく、
+今後もう一度関係が近づく可能性も見えています。`,
+
+`${name || "あなた"}さんの相手は、
+現在“環境変化”の影響を強く受けています。
+
+特に${age}歳前後は、
+恋愛よりも自分自身の安定を優先しやすい時期です。
+
+「${behavior}」という行動は、
+本音を隠そうとするサインとして出ています。
+
+しかし、
+完全に気持ちが冷めているわけではなく、
+まだ迷いや未練が残っている流れも感じられます。
+
+焦らず距離を詰めることで、
+関係修復の可能性があります。`,
+
+`${name || "あなた"}さんの占い結果では、
+今の相手は“本心を見せにくい状態”にあります。
+
+${life}タイプの人は、
+精神状態が生活に大きく反映されやすく、
+最近の「${behavior}」にもそれが出ています。
+
+特に${blood}型傾向として、
+感情を整理する時間を必要とする暗示があります。
+
+今は追いかけるより、
+自然な距離感を保つことで
+相手側から動きが出る可能性があります。`
+
+      ];
+
+      const random =
+        results[Math.floor(Math.random() * results.length)];
+
+      document.getElementById("result").style.display = "block";
+
+      document.getElementById("resultText").innerHTML =
+        random.replace(/\n/g, "<br><br>");
+
+    }, 3000);
+
+  }
+
+</script>
+
+</body>
+</html>
